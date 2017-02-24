@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>自定义checkbox和radio</title>
+  <style type="text/css">
+    .pseudo input {
+      display: none;
+    }
+    .pseudo label::before {
+      display: inline-block;
+      content: "";
+      width: 20px;
+      height: 20px;
+      background: url('bg.png') no-repeat;
+      vertical-align: middle;
+    }
+    .pseudo label[for^='cb']::before {
+      background-position: 25% 104%;
+    }
+    .pseudo input[type="checkbox"]:checked + label::before {
+      background-position: 70% 104%;
+    }
+    .pseudo label[for^='rd']::before {
+      background-position: 25% 30%;
+    }
+    .pseudo input[type="radio"]:checked + label::before {
+      background-position: 70% 30%;
+    }
+  </style>
+</head>
+<body>
+<div class="pseudo">
+  伪元素：
+  <input type="checkbox" name="checkbox" id="cb-1"><label for="cb-1">1</label>
+  <input type="checkbox" name="checkbox" id="cb-2"><label for="cb-2">2</label>
+  <input type="checkbox" name="checkbox" id="cb-3"><label for="cb-3">3</label>
+  <input type="radio" name="radio" id="rd-1"><label for="rd-1">1</label>
+  <input type="radio" name="radio" id="rd-2"><label for="rd-2">2</label>
+</div>
+
+</body>
+</html>
