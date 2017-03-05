@@ -57,22 +57,13 @@
   }
 
   function getWindowsSize() {
-    var winWidth, winHeight;
-    // 获取窗口宽度
-    if (window.innerWidth)
-      winWidth = window.innerWidth;
-    else if ((document.body) && (document.body.clientWidth))
-      winWidth = document.body.clientWidth;
-    // 获取窗口高度
-    if (window.innerHeight)
-      winHeight = window.innerHeight;
-    else if ((document.body) && (document.body.clientHeight))
-      winHeight = document.body.clientHeight;
-    // 通过深入 Document 内部对 body 进行检测，获取窗口大小
-    if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
-      winHeight = document.documentElement.clientHeight;
-      winWidth = document.documentElement.clientWidth;
-    }
+    var winWidth=window.innerWidth
+    || document.documentElement.clientWidth
+    || document.body.clientWidth;
+
+    var winHeight=window.innerHeight
+    || document.documentElement.clientHeight
+    || document.body.clientHeight;
     return {'x': winWidth,'y': winHeight};
   }
 
@@ -83,16 +74,8 @@
     console.log('point', point);
     var winSize = getWindowsSize();
     console.log('winSize', winSize);
-    if( point.y + menu.offsetHeight > winSize.y ) {
-      y = point.y - menu.offsetHeight;
-    } else {
-      y = point.y;
-    }
-    if( point.x + menu.offsetWidth > winSize.x ) {
-      x = point.x - menu.offsetWidth;
-    }  else {
-      x = point.x;
-    }
+    y = point.y + menu.offsetHeight > winSize.y ? point.y - menu.offsetHeight : point.y;
+    x = point.x + menu.offsetWidth > winSize.x ? point.x - menu.offsetWidth : point.x;
     menu.style.top = y+'px';
     menu.style.left = x+'px';
     console.log(x,y);
@@ -100,14 +83,8 @@
 
   document.oncontextmenu = function(event){
     var event = event || window.event;
-    try{
-      showMenu(event);
-      return false;
-    }
-    catch(e){
-      throw e;
-      return false; 
-    } 
+    showMenu(event);
+    return false;
   }
 
   document.addEventListener('click', function (event) {
