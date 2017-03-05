@@ -11,6 +11,10 @@
     box-sizing: border-box;
   }
 
+  body {
+    overflow: hidden;
+  }
+
   li {
     list-style: none;
     cursor: pointer;
@@ -36,7 +40,7 @@
     border-radius: 5px;
     line-height: 30px;
     width: 200px;
-    top: 999999px;
+    left: 999999px;
   }
   </style>
 </head>
@@ -90,7 +94,7 @@
     var event = event || window.event;
     var target = event.srcElement ? event.srcElement : event.target;
     if(!target.classList.contains("menu-item")) {
-      document.getElementsByClassName('menu')[0].style.top = '999999px';
+      document.getElementsByClassName('menu')[0].style.left = '999999px';
     } else {
       alert(target.innerHTML);
     }
