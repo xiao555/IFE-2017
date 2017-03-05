@@ -68,14 +68,13 @@
   }
 
   function showMenu(e) {
-    var x,y;
     var menu = document.getElementsByClassName('menu')[0];
     var point = getMousePos(e);
     console.log('point', point);
     var winSize = getWindowsSize();
     console.log('winSize', winSize);
-    y = point.y + menu.offsetHeight > winSize.y ? point.y - menu.offsetHeight : point.y;
-    x = point.x + menu.offsetWidth > winSize.x ? point.x - menu.offsetWidth : point.x;
+    var y = point.y + menu.offsetHeight > winSize.y ? point.y - menu.offsetHeight : point.y;
+    var x = point.x + menu.offsetWidth > winSize.x ? point.x - menu.offsetWidth : point.x;
     menu.style.top = y+'px';
     menu.style.left = x+'px';
     console.log(x,y);
