@@ -27,13 +27,16 @@
   };
 
   p.convert = function (key, val) {
+    // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
     Object.defineProperty(this.data, key, {
       enumerable: true,
       configurable: true,
+      // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/get
       get: function () {
         console.log('你访问了 ' + key);
         return val;
       },
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
       set: function (newVal) {
         console.log('你设置了 ' + key + ', 新的值为' + newVal);
         if(newVal = val) return;
