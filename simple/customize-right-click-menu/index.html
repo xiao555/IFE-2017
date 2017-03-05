@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <title>自定义右键菜单</title>
+  <style type="text/css">
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  li {
+    list-style: none;
+    cursor: pointer;
+    padding-left: 20px;
+  }
+
+  li:hover {
+    background-color: beige;
+  }
+
+  .click-area {
+    background-color: beige;
+    border: 1px solid gray;
+    border-radius: 5px;
+    line-height: 50px;
+    padding-left: 20px;
+  }
+
+  .menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 5px;
+    line-height: 30px;
+    width: 200px;
+    top: 999999px;
+  }
+  </style>
+</head>
+<body>
+<div class="click-area">
+  right click to see the menu
+</div>
+<div class="menu">
+  <ul>
+    <li class="menu-item">Menu Item 1</li>
+    <li class="menu-item">Menu Item 2</li>
+  </ul>
+</div>
+<script type="text/javascript">
+  function getMousePos() {
+    var e = window.event;
+    return {'x': e.clientX,'y': e.clientY};
+  }
+
+  function getWindowsSize() {
+    var winWidth, winHeight;
+    // 获取窗口宽度
+    if (window.innerWidth)
+      winWidth = window.innerWidth;
+    else if ((document.body) && (document.body.clientWidth))
+      winWidth = document.body.clientWidth;
+    // 获取窗口高度
+    if (window.innerHeight)
+      winHeight = window.innerHeight;
+    else if ((document.body) && (document.body.clientHeight))
+      winHeight = document.body.clientHeight;
+    // 通过深入 Document 内部对 body 进行检测，获取窗口大小
+    if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
+      winHeight = document.documentElement.clientHeight;
+      winWidth = document.documentElement.clientWidth;
+    }
+    return {'x': winWidth,'y': winHeight};
+  }
+
+  function showMenu(e) {
+    var x,y;
+    var menu = document.getElementsByClassName('menu')[0];
+    var point = getMousePos(e);
+    console.log('point', point);
+    var winSize = getWindowsSize();
+    console.log('winSize', winSize);
+    if( point.y + menu.offsetHeight > winSize.y ) {
+      y = point.y - menu.offsetHeight;
+    } else {
+      y = point.y;
+    }
+    if( point.x + menu.offsetWidth > winSize.x ) {
+      x = point.x - menu.offsetWidth;
+    }  else {
+      x = point.x;
+    }
+    menu.style.top = y+'px';
+    menu.style.left = x+'px';
+    console.log(x,y);
+  }
+
+  document.oncontextmenu = function(event){
+    var event = event || window.event;
+    try{
+      showMenu(event);
+      return false;
+    }
+    catch(e){
+      throw e;
+      return false; 
+    } 
+  }
+
+  document.addEventListener('click', function (event) {
+    var event = event || window.event;
+    var target = event.srcElement ? event.srcElement : event.target;
+    if(!target.classList.contains("menu-item")) {
+      document.getElementsByClassName('menu')[0].style.top = '999999px';
+    } else {
+      alert(target.innerHTML);
+    }
+  });
+</script>
+</body>
+</html>
