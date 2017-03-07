@@ -6,12 +6,46 @@
 </head>
 <body>
 <script type="text/javascript">
+
+  function Event() {
+    this.events = {};
+  }
+
+  Event.prototype = {
+    on: function(attr, cb) {
+      if(this.events[attr]) {
+        this.events[attr].push(cb);
+      } else {
+        this.events[attr] = [cb];
+      }
+    },
+    off: function(attr) {
+      for(let key in this.events) {
+        if(this.events.hasOwnProperty(key) && key === attr) {
+          delete this.events[key];
+        }
+      }
+    },
+    emit: function(attr, ...arg) {
+      this.events[attr] && this.events[attr].forEach(function(item) {
+        item(...arg);
+      })
+    }
+  };
+
+  let events = new Event();
+
   function Observer(data) {
     this.data = data;
     this.walk(data);
+    this.events = events;
   }
 
   let p = Observer.prototype;
+
+  p.$watch = function(attr, cb) {
+    this.events.on(attr, cb);
+  }
 
   p.walk = function(obj) {
     let val;
@@ -28,6 +62,7 @@
 
   p.convert = function (key, val) {
     // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+    let self = this;
     Object.defineProperty(this.data, key, {
       enumerable: true,
       configurable: true,
@@ -39,8 +74,12 @@
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
       set: function (newVal) {
         console.log('你设置了 ' + key + ', 新的值为' + newVal);
-        if(newVal == val) return;
+        self.events.emit(key, val, newVal);
+        if(newVal === val) return;
         val = newVal;
+        if (typeof val === 'object') {
+          new Observer(val);
+        }
       }
     })
   };
@@ -52,10 +91,20 @@
     },
     address: {
       city: 'xian'
-    }
+    },
+    info: 'test',
+    watch: 'true'
   };
 
   let app = new Observer(data);
+  app.data.info = {
+   lastName: 'zhang',
+   firstName: 'ruiwu'
+  };
+
+  app.$watch('age', function(oldVal, newVal) {
+    console.log('我的年纪变了，原来是: ' + oldVal + ',现在已经是: ' + newVal + '岁了');
+  });
   console.log(app);
 </script>
 </body>
