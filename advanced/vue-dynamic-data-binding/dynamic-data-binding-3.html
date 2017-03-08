@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>动态数据绑定</title>
+</head>
+<body>
+<script type="text/javascript">
+
+  function Event() {
+    this.events = {};
+  }
+
+  Event.prototype = {
+    on: function(attr, cb) {
+      if(this.events[attr]) {
+        this.events[attr].push(cb);
+      } else {
+        this.events[attr] = [cb];
+      }
+    },
+    off: function(attr) {
+      for(let key in this.events) {
+        if(this.events.hasOwnProperty(key) && key === attr) {
+          delete this.events[key];
+        }
+      }
+    },
+    emit: function(attr, parents, ...arg) {
+      this.events[attr] && this.events[attr].forEach(function(item) {
+        item(...arg);
+      });
+      var self = this;
+      parents.reverse();
+      parents.forEach(function(item) {
+        self.events[item] && self.events[item].forEach(function(items) {
+          items(...arg);
+        });
+      })
+    }
+  };
+
+  let events = new Event();
+
+  function Observer(data, parents = []) {
+    this.data = data;
+    this.walk(data, parents);
+    this.events = events;
+  }
+
+  let p = Observer.prototype;
+
+  p.$watch = function(attr, cb) {
+    this.events.on(attr, cb);
+  }
+
+  p.walk = function(obj, parents) {
+    let val;
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        val = obj[key];
+        if (typeof val === 'object') {
+          new Observer(val, [key].concat(parents));
+        }
+        this.convert(key, val, parents);
+      }
+    }
+  };
+
+  p.convert = function (key, val, parents) {
+    // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+    let self = this;
+    Object.defineProperty(this.data, key, {
+      enumerable: true,
+      configurable: true,
+      // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/get
+      get: function () {
+        console.log('你访问了 ' + key);
+        return val;
+      },
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
+      set: function (newVal) {
+        console.log('你设置了 ' + key + ', 新的值为' + newVal);
+        self.events.emit(key, parents, val, newVal);
+        if(newVal === val) return;
+        val = newVal;
+        if (typeof val === 'object') {
+          new Observer(val, [key].concat(parents));
+        }
+      }
+    })
+  };
+
+  let data = {
+    user: {
+      name: 'xiao555',
+      age: '22'
+    },
+    address: {
+      city: 'xian'
+    },
+    info: 'test',
+    watch: 'true'
+  };
+
+  let app = new Observer(data);
+  app.data.info = {
+   lastName: {
+     text: 'test'
+   },
+   firstName: 'ruiwu'
+  };
+
+  app.$watch('age', function(oldVal, newVal) {
+    console.log('我的年纪变了，原来是: ' + oldVal + ',现在已经是: ' + newVal + '岁了');
+  });
+  app.$watch('info', function(newVal) {
+    console.log('我的信息发生了变化，可能是姓氏变了，也可能是名字变了。')
+  });
+  app.$watch('user', function(oldVal, newVal) {
+    console.log('我的用户发生了变化，可能是名字变了，也可能是年龄变了。')
+  });
+  app.data.info.lastName.text = 'xiao555';
+  app.data.user.age = '30';
+  console.log(app);
+</script>
+</body>
+</html>
