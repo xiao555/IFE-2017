@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>动态数据绑定</title>
+</head>
+<body>
+<div id="app">
+  <p>姓名：{{ user.name }}</p>
+  <p>年龄：{{ user.age }}</p>
+</div>
+<script type="text/javascript">
+  function Vue(option) {
+    this.el = document.querySelector(option.el);
+    this.data = option.data;
+    this.convert();
+  }
+
+  Vue.prototype.convert = function () {
+    let self = this;
+    let html = this.el.innerHTML;
+    function replaceIt(item) {
+      var keys = item.match(/(\w+\.?)+/g)[0].split('.');
+      let value = self.data;
+      for (var i = 0; i < keys.length; i++) {
+        value = value[keys[i]];
+      }
+      return value;
+    }
+    let result = html.replace(/\{\{.*?\}\}/g, replaceIt);
+    this.el.innerHTML = result;
+  }
+
+  let app = new Vue({
+    el: '#app',
+    data: {
+      user: {
+        name: 'xiao555',
+        age: 25
+      }
+    }
+  });
+</script>
+</body>
+</html>
