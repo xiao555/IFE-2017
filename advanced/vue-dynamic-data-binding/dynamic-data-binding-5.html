@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>动态数据绑定5</title>
+</head>
+<body>
+<div id="app">
+  <p>姓名：{{ user.name }}</p>
+  <p>年龄：{{ user.age }}</p>
+</div>
+<script type="text/javascript">
+
+  function getValue(route, obj) {
+    let keys = route.match(/(\w+\.?)+/g)[0].split('.')
+    let value = obj
+    for (var i = 0;i < keys.length;i++) {
+      value = value[keys[i]]
+    }
+    return value
+  }
+
+  function getKey(obj, arr) {
+    let value = obj;
+    for (var i = arr.length - 1;i >= 0;i--) {
+      value = value[arr[i]]
+    }
+    return value
+  }
+  // 节点
+  function Node(descriptor, vm, el) {
+    this.vm = vm
+    this.el = el
+    this.descriptor = descriptor
+    this.name = descriptor.name
+    this.expression = descriptor.exp
+    this.update = descriptor.update
+    this.update(getValue(this.expression, this.vm._data))
+    this.vm[this.expression] = this.el
+  }
+  
+
+  // Vue
+  function Vue(option, parents = []) {
+    this.el = document.querySelector(option.el)
+    this._data = option.data
+    this._directives = []
+    this.analyElement(this.el)
+    this.walk(this._data, parents)
+  }
+
+  Vue.prototype.walk = function(obj, parents) {
+    let val;
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        val = obj[key]
+        if (typeof val === 'object') {
+          this.walk(val, [key].concat(parents))
+        }
+        this.convert(key, val, parents);
+      }
+    }
+  }
+
+  Vue.prototype.convert = function(key, val, parents) {
+    let self = this;
+    let target = parents == [] ? this._data : getKey(this._data, parents)
+    Object.defineProperty(target, key, {
+      enumerable: true,
+      configurable: true,
+      get: function () {
+        console.log('你访问了 ' + key);
+        return val;
+      },
+      set: function (newVal) {
+        console.log('你设置了 ' + key + ', 新的值为' + newVal)
+        if(newVal == val) return
+        val = newVal
+        let exp = [key].concat(parents).reverse().join('.')
+        if(self[exp]) {
+          console.log('渲染DOM')
+          self[exp].textContent = val
+        }
+        if (typeof val === 'object') {
+          return self.walk(val, [key].concat(parents))
+        }
+
+        // console.log([key].concat(parents))
+        // self._directives.updateByExpression([key].concat(parents))
+      }
+    })
+  }
+  
+  // 开始分析节点
+  Vue.prototype.analyElement = function(node) {
+    switch(node.nodeType) {
+      // node
+      case 1:
+        this.splitElement(node)
+        break
+      // text
+      case 3:
+        this.replaceElement(node)
+        break
+      default:
+        return
+    }
+  }
+  // 找出子节点
+  Vue.prototype.splitElement = function(node) {
+    if(node.hasChildNodes()) {
+      Array.from(node.childNodes).forEach(this.analyElement, this)
+    }
+  }
+  // 用 DocumentFragment 替换 TextNode
+  Vue.prototype.replaceElement = function (node) {
+    let self = this
+    let text = node.nodeValue
+    var regTag = /{{(.*?)}}/g
+    if(!regTag.test(text)) return
+    let tokens = []
+    let lastIndex = regTag.lastIndex = 0
+    let index, value
+    while(matchs = regTag.exec(text)) {
+      index = matchs.index
+      if(index > lastIndex) {
+        tokens.push({
+          value: text.slice(lastIndex, index)
+        })
+      }
+
+      value = matchs[1]
+      tokens.push({
+        tag: true,
+        value: value.trim()
+      })
+      lastIndex = index + matchs[0].length
+    }
+
+    if(lastIndex < text.length) {
+      tokens.push({
+        value: text.slice(lastIndex)
+      })
+    }
+
+    function processTextToken(token) {
+      let el = document.createTextNode(' ')
+      // 简化，双向绑定，text 模式
+      token.descriptor = {
+        name: 'text',
+        exp: token.value,
+        update: function (value) {
+          this.el.textContent = value
+        }
+      }
+      return el
+    }
+
+    function toArray(list) {
+      var l = list.length
+      var ret = new Array(l)
+      while (l--) {
+        ret[l] = list[l]
+      }
+      return ret
+    }
+
+    if (tokens) {
+      let frag = document.createDocumentFragment()
+      tokens.forEach(function(token) {
+        let el = token.tag ? processTextToken(token) : document.createTextNode(token.value)
+        frag.appendChild(el)
+      })
+      let fragClone = frag.cloneNode(true)
+      let childNodes = toArray(fragClone.childNodes)
+      tokens.forEach(function (token, i) {
+        let value = token.value
+        if (token.tag) {
+          let cnode = childNodes[i]
+          self._directives.push(new Node(token.descriptor, self, cnode))
+        }
+      })
+      node.parentNode.replaceChild(fragClone, node)
+    }
+    
+  }
+
+  let app = new Vue({
+    el: '#app',
+    data: {
+      user: {
+        name: 'xiao555',
+        age: 25
+      },
+      city: 'xian'
+    }
+  })
+  console.log(app)
+</script>
+</body>
+</html>
